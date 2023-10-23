@@ -8,7 +8,7 @@ import receipt from "@/services/receipt";
 import { useReceiptStore } from "./receipt";
 import { useSellStore } from "./sell";
 import { useBillMaterialStore } from "./bill-materials";
-import { useSalaryStore } from "./salary";
+import { useSalaryStore } from "./Salary";
 import { useCheckMaterialStore } from "./check-materials";
 import { useEmployeeStore } from "./employee";
 

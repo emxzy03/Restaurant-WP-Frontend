@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useVarCompnStore } from "@/stores/var-compn";
-import { useSalaryStore } from "@/stores/salary";
+import { useSalaryStore } from "@/stores/Salary";
 import { computed, onMounted, ref } from "vue";
 import { mdiDotsHorizontalCircle, mdiCloseCircleOutline } from "@mdi/js";
 import SalaryDetail from "./SalaryDetail.vue";

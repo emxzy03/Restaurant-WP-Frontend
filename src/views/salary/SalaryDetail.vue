@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useSalaryStore } from "@/stores/salary";
+import { useSalaryStore } from "@/stores/Salary";
 import { onMounted, ref } from "vue";
 import { useVarCompnStore } from "@/stores/var-compn";
 
