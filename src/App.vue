@@ -30,10 +30,10 @@ const loginStore = useLoginStore();
 //   loginName.value = localStorage.getItem("loginName") || "";
 // };
 
-onMounted(() => {
-  console.log("On Mounted");
-  loginStore.loadData();
-});
+// onMounted(() => {
+//   console.log("On Mounted");
+//   loginStore.loadData();
+// });
 </script>
 
 <template>
@@ -42,13 +42,12 @@ onMounted(() => {
     :is="$route.meta.layout == 'MainLayout' ? MainLayout : FullLayout"
   ></component>
   <!-- {{ $route.meta }} -->
-  <!-- 
   <MainView
     v-if="loginStore.isLogin"
     @logout="loginStore.logout"
     :login-name="loginStore.loginName"
   />
-  <LoginView v-if="!loginStore.isLogin" /> -->
+  <LoginView v-if="!loginStore.isLogin" />
   <MessageBox></MessageBox>
   <!-- @login="loginStore.login"  -->
   <LoadingDialog></LoadingDialog>

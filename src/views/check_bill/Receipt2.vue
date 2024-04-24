@@ -6,68 +6,67 @@ import { useTableMgmtStore } from "@/stores/table-mgmt";
 import type Receipt from "@/types/Receipt";
 import { mdiCurrencyUsd, mdiCreditCard, mdiReceiptText } from "@mdi/js";
 import { onMounted, ref } from "vue";
+// import { useRecieptDetailStore } from "@/stores/receipt_detail";
 import ConfPrintDialog from "./ConfPrintDialog.vue";
 
 onMounted(async () => {
-  // await receiptStore.getReceipts();
-  // await tableMgmtStore.getTableAll();
+  await receiptStore.getReceipts();
 });
 
-// const receiptStore = useReceiptStore();
+const recieptStore = useReceiptStore();
 const receiptStore = useReceiptStore();
 const loginStore = useLoginStore();
 const tableMgmtStore = useTableMgmtStore();
 const type = ref("");
 const showFocus = ref(false);
 const confPrintDlg = ref();
-// const checkBilled = useReceiptStore().checkBill;
 
 const billPayT = (type: string) => {
   if (type === "โอน") {
-    receiptStore.showPay = !receiptStore.showPay;
-    receiptStore.showBillPay = {
+    recieptStore.showPay = !recieptStore.showPay;
+    recieptStore.showBillPay = {
       payment: "โอน",
       status: "ชำระเงินแล้ว",
-      received: receiptStore.checkBillItem?.total,
+      received: recieptStore.receiptsAt?.total,
       change: 0,
     };
-    return receiptStore.showBillPay;
+    return recieptStore.showBillPay;
   } else if (type === "เงินสด") {
-    receiptStore.showText = !receiptStore.showText;
+    recieptStore.showText = !recieptStore.showText;
     showFocus.value = true;
-    receiptStore.showPay = !receiptStore.showPay;
-    receiptStore.showBillPay = {
+    recieptStore.showPay = !recieptStore.showPay;
+    recieptStore.showBillPay = {
       payment: "เงินสด",
       status: "ชำระเงินแล้ว",
       received: 0,
       change: 0,
     };
-    return receiptStore.showBillPay;
+    return recieptStore.showBillPay;
   }
 };
 
 const cashPay = (itemRec: Receipt) => {
   if (itemRec.payment === "เงินสด") {
-    receiptStore.showBillPay = {
+    recieptStore.showBillPay = {
       payment: "เงินสด",
       status: "ชำระเงินแล้ว",
-      received: receiptStore.showBillPay.received!,
+      received: recieptStore.showBillPay.received!,
       change:
-        receiptStore.showBillPay.received! - receiptStore.checkBillItem?.total!,
+        recieptStore.showBillPay.received! - receiptStore.receiptsAt?.total!,
     };
   }
-  return receiptStore.showBillPay;
+  return recieptStore.showBillPay;
 };
 
 const printBill = async (tableId: number, recId: number, itemRec: Receipt) => {
-  receiptStore.showBill = !receiptStore.showBill;
-  receiptStore.showPay = !receiptStore.showPay;
+  recieptStore.showBill = !recieptStore.showBill;
+  recieptStore.showPay = !recieptStore.showPay;
   cashPay(itemRec);
-  // console.log(receiptStore.showBillPay);
+  // console.log(recieptStore.showBillPay);
   try {
     await tableMgmtStore.statusTable(tableId);
-    await receiptStore.updateBill(recId, receiptStore.showBillPay);
-    receiptStore.showBillPay = receiptStore.editedReceipt;
+    await recieptStore.updateBill(recId, recieptStore.showBillPay);
+    recieptStore.showBillPay = recieptStore.editedReceipt;
   } catch (e) {
     /* empty */
   }
@@ -83,8 +82,8 @@ const openD = async (tableId: number, recId: number, itemRec: Receipt) => {
 };
 
 const checkReceiptDetail = () => {
-  if (receiptStore.checkBillItem?.receiptDetail! != undefined) {
-    if (receiptStore.checkBillItem?.receiptDetail?.length! > 0) {
+  if (receiptStore.receiptsAt?.receiptDetail! != undefined) {
+    if (receiptStore.receiptsAt?.receiptDetail?.length! > 0) {
       return true;
     }
   }
@@ -178,13 +177,11 @@ const checkReceiptDetail = () => {
                     <tbody>
                       <template v-if="checkReceiptDetail()">
                         <tr
-                          v-for="(item, index) in receiptStore.checkBillItem
+                          v-for="(item, index) in receiptStore.receiptsAt
                             ?.receiptDetail"
                           :key="index"
                         >
-                          <td style="border-bottom: none">
-                            {{ item.name }}
-                          </td>
+                          <td style="border-bottom: none">{{ item.name }}</td>
                           <td style="border-bottom: none">
                             {{ item.quantity }}
                           </td>
@@ -192,7 +189,7 @@ const checkReceiptDetail = () => {
                           <td style="border-bottom: none">{{ item.total }}</td>
                         </tr>
                       </template>
-                      <template v-if="!checkReceiptDetail()">
+                      <template v-else>
                         <td
                           style="border: none; text-align: center"
                           colspan="4"
@@ -282,23 +279,23 @@ const checkReceiptDetail = () => {
                 <v-col>
                   <div class="position-absolute" style="left: 11%">Change</div>
                 </v-col>
-                <v-col v-if="receiptStore.showBillPay.received! == 0">
+                <v-col v-if="recieptStore.showBillPay.received! == 0">
                   <div class="position-absolute" style="right: 20%">
-                    {{ receiptStore.showBillPay.received! }}
+                    {{ recieptStore.showBillPay.received! }}
                   </div>
                 </v-col>
                 <v-col
-                  v-else-if="receiptStore.receiptsAt?.total! - receiptStore.showBillPay.received! < 0"
+                  v-else-if="receiptStore.receiptsAt?.total! - recieptStore.showBillPay.received! < 0"
                 >
                   <div class="position-absolute" style="right: 20%">
                     {{
-                      receiptStore.showBillPay.received! -
+                      recieptStore.showBillPay.received! -
                       receiptStore.receiptsAt?.total!
                     }}
                   </div>
                 </v-col>
                 <v-col
-                  v-else-if="receiptStore.receiptsAt?.total! - receiptStore.showBillPay.received! < receiptStore.receiptsAt?.total! && receiptStore.receiptsAt?.total! - receiptStore.showBillPay.received! >= 1 || receiptStore.showBillPay.received! < 0"
+                  v-else-if="receiptStore.receiptsAt?.total! - recieptStore.showBillPay.received! < receiptStore.receiptsAt?.total! && receiptStore.receiptsAt?.total! - recieptStore.showBillPay.received! >= 1 || recieptStore.showBillPay.received! < 0"
                 >
                   <div class="position-absolute" style="right: 20%">
                     จำนวนเงินไม่พอ
@@ -308,7 +305,7 @@ const checkReceiptDetail = () => {
                   <div class="position-absolute" style="right: 20%">
                     {{
                       receiptStore.receiptsAt?.total! -
-                      receiptStore.showBillPay.received!
+                      recieptStore.showBillPay.received!
                     }}
                   </div>
                 </v-col>
@@ -331,9 +328,9 @@ const checkReceiptDetail = () => {
                     Payment :
                   </div>
                 </v-col>
-                <v-col class="ma-4" v-if="receiptStore.showPay">
+                <v-col class="ma-4" v-if="recieptStore.showPay">
                   <div class="position-absolute" style="right: 20%">
-                    {{ receiptStore.showBillPay.payment }}
+                    {{ recieptStore.showBillPay.payment }}
                   </div>
                 </v-col>
                 <v-col class="position-absolute" style="left: 60%" v-else>
@@ -368,12 +365,12 @@ const checkReceiptDetail = () => {
                     variant="flat"
                     style="font-size: 100%; font-weight: bold"
                     color="blue-grey"
-                    v-if="receiptStore.showPay"
+                    v-if="recieptStore.showPay"
                     @click="
                       openD(
-                        receiptStore.tableCheckBill,
-                        receiptStore.receiptsAt?.id!,
-                        receiptStore.showBillPay
+                        recieptStore.tableCheckBill,
+                        recieptStore.receiptsAt?.id!,
+                        recieptStore.showBillPay
                       )
                     "
                   >
@@ -381,9 +378,9 @@ const checkReceiptDetail = () => {
                   </v-btn>
                   <!-- @click="
                                   printBill(
-                                    receiptStore.tableCheckBill,
-                                    receiptStore.receiptsAt?.id!,
-                                    receiptStore.showBillPay
+                                    recieptStore.tableCheckBill,
+                                    recieptStore.receiptsAt?.id!,
+                                    recieptStore.showBillPay
                                   )
                                 " -->
                 </v-col>

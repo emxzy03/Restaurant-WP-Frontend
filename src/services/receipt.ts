@@ -8,6 +8,11 @@ function getReceipts() {
 function getOneReceipts(id: number) {
   return http.get(`/receipts/${id}`);
 }
+function getOneReceiptsByTableId(id: number) {
+  // console.log("Receipt is " + http.get(`/receipts/table/${id}`));
+  return http.get(`/receipts/table/${id}`);
+}
+
 function getOneReceiptsByUuid(uuidI: string) {
   return http.get(`/receipts/guuid/${uuidI}`);
 }
@@ -46,4 +51,5 @@ export default {
   deleteReceipts,
   getOneReceiptsByUuid,
   deleteReceiptItems,
+  getOneReceiptsByTableId,
 };

@@ -28,6 +28,14 @@ export const useReceiptStore = defineStore("receipt", () => {
   const ReceiptDetails = ref<ReceiptDetail[]>([]);
   const baseUrlSellView = ref("http://localhost:5173/receipt/");
   const urlSellView = ref("");
+  const checkBillItem = ref<Receipt>();
+
+  async function getCheckBill(id: number) {
+    const bill = await receiptService.getOneReceiptsByTableId(id);
+    if (!bill) messageStore.showMessage("ไม่สามารถดึง Receipt item ได้");
+    return (checkBillItem.value = bill.data);
+  }
+
   const setUrlSellView = async (table: TableMgmt) => {
     await openR(table);
     urlSellView.value = baseUrlSellView.value + uuidReceipt.value;
@@ -419,5 +427,7 @@ export const useReceiptStore = defineStore("receipt", () => {
     nameReceipt,
     urlSellView,
     setUrlSellView,
+    getCheckBill,
+    checkBillItem,
   };
 });

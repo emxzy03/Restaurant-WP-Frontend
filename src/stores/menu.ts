@@ -36,6 +36,7 @@ export const useMenuStore = defineStore("menu", () => {
     try {
       const res = await menuService.getMenus();
       menus.value = res.data;
+      console.log(menus.value);
     } catch (e) {
       console.log(e);
       messageStore.showMessage("ไม่สามารถดึง Menu ได้");

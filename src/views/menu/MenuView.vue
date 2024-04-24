@@ -49,8 +49,8 @@ const varcpStore = useVarCompnStore();
                 <th :style="varcpStore.styleTableTh">Operations</th>
               </tr>
             </thead>
-            <tbody>
-              <tr v-for="item of menuStore.menus" :key="item.id">
+            <tbody v-for="item of menuStore.menus" :key="item.id">
+              <tr>
                 <td
                   style="font-size: 2.2vh"
                   v-if="
@@ -97,7 +97,8 @@ const varcpStore = useVarCompnStore();
                     varcpStore.valuesMatAutocom == null
                   "
                 >
-                  {{ JSON.parse(JSON.stringify(item.category)).name }}
+                  <!-- {{ JSON.parse(JSON.stringify(item.category)).name }} -->
+                  {{ item.category?.name }}
                 </td>
                 <td
                   style="font-size: 2.2vh"

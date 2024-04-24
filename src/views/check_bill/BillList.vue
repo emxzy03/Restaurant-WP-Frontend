@@ -33,6 +33,9 @@ const colorStatus = (colorS: string): string => {
 
 const checkBill = async (id: number, status: String) => {
   try {
+    const check = recieptStore.getCheckBill(id);
+    console.log("is" + id + "status" + status);
+    console.log(check);
     if (status === "ไม่ว่าง" && !recieptStore.showBill) {
       recieptStore.showBill = !recieptStore.showBill;
       recieptStore.tableCheckBill = id;
