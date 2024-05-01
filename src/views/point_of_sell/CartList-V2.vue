@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import { mdiFood, mdiCart, mdiClose } from "@mdi/js";
 import { useSellStore } from "@/stores/sell";
 import { useReceiptStore } from "@/stores/receipt";
@@ -159,7 +159,7 @@ onMounted(async () => {
           class="btnMargin"
           width="200px"
           @click="
-            sellStore.confirm(isTableId);
+            sellStore.confirm();
             receiptStore.getOneReceiptsByUUid(sellStore.getReceiptUuid());
           "
           >ยืนยัน</v-btn
@@ -173,4 +173,4 @@ onMounted(async () => {
 .btnMargin {
   margin: 1em;
 }
-</style>
+</style> -->

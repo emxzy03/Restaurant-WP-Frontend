@@ -6,6 +6,7 @@ export default interface MenuQueue {
   id?: number;
   name: string;
   note: string;
+  quantity: number;
   status: string;
   menu?: Menu;
   menuId?: number;

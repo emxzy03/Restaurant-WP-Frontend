@@ -27,6 +27,7 @@ export const useReceiptStore = defineStore("receipt", () => {
   const uuidReceipt = ref("");
   const ReceiptDetails = ref<ReceiptDetail[]>([]);
   const baseUrlSellView = ref("http://localhost:5173/receipt/");
+  const baseUrlPOS = ref("http://localhost:5173/receipt/");
   const urlSellView = ref("");
   const checkBillItem = ref<Receipt>();
 

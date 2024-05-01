@@ -18,8 +18,8 @@ const loginStore = useLoginStore();
 const confirmDlg = ref();
 
 onMounted(async () => {
-  menuQueueStore.select = 7;
-  await menuQueueStore.getMenuQueues();
+  // menuQueueStore.select = 7;
+  // await menuQueueStore.getMenuQueues();
   await loginStore.loadData();
 });
 // let queue = 0;
@@ -45,7 +45,7 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
       "Please Confirm",
       `คุณต้องการยกเลิกรายการนี้หรือไม่`
     );
-    await menuQueueStore.updateStsMenuQ(menuQ);
+    // await menuQueueStore.updateStsMenuQ(menuQ);
     await menuQueueStore.cancelMenuQueue(menuQ);
   } catch (e) {
     console.log(e);
@@ -71,39 +71,31 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
                   <th :style="varcpStore.styleTableTh" class="text-center">
                     Table No.
                   </th>
-                  <th :style="varcpStore.styleTableTh">Beverage Name</th>
-                  <!-- <th :style="varcpStore.styleTableTh">Quantity</th> -->
-                  <th :style="varcpStore.styleTableTh">Note</th>
-                  <th :style="varcpStore.styleTableTh">Time Update</th>
+                  <th :style="varcpStore.styleTableTh">Order Name</th>
+                  <th :style="varcpStore.styleTableTh">Note Hide</th>
+                  <th :style="varcpStore.styleTableTh">Quantity</th>
+                  <th :style="varcpStore.styleTableTh">Time</th>
                   <th :style="varcpStore.styleTableTh">Status</th>
                   <th :style="varcpStore.styleTableTh">Operations</th>
                 </tr>
               </thead>
               <tbody>
-                <!-- <tr
-                v-for="item of cookingStore.beverageList"
-                :key="item.menuName"
-              > -->
-                <tr v-for="(item, i) of menuQueueStore.menuQueuesDo" :key="i">
-                  <!-- <template
-                    v-if="
-                      item.menu?.category?.id == 7 && item.status == 'กำลังทำ'
-                    "
-                  > -->
+                <tr
+                  v-for="(item, i) of menuQueueStore.menuQueuesDoing"
+                  :key="i"
+                >
                   <td style="font-size: 2.2vh">
                     {{ i + 1 }}
-                    <!-- {{ itemsQueue(item.id!) }} -->
                   </td>
                   <!-- <td style="font-size: 2.2vh">[...]</td> -->
                   <td style="font-size: 2.2vh" class="text-center">
-                    {{ item.receipt?.table?.num }}
+                    {{ item.receipt?.table?.num! }}
                   </td>
-                  <td style="font-size: 2.2vh">
-                    {{ item.name }}
-                  </td>
+                  <td style="font-size: 2.2vh">{{ item.name }}</td>
                   <td style="font-size: 2.2vh">
                     {{ item.note }}
                   </td>
+                  <td style="font-size: 2.2vh">{{ item.quantity }}</td>
                   <td style="font-size: 2.2vh">
                     {{ item.updatedAt?.toString().substring(0, 10) }} |
                     {{
@@ -151,28 +143,20 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
                   <th :style="varcpStore.styleTableTh" class="text-center">
                     Table No.
                   </th>
-                  <th :style="varcpStore.styleTableTh">Beverage Name</th>
-                  <!-- <th :style="varcpStore.styleTableTh">Quantity</th> -->
+                  <th :style="varcpStore.styleTableTh">Order Name</th>
                   <th :style="varcpStore.styleTableTh">Note</th>
+                  <th :style="varcpStore.styleTableTh">Quantity</th>
                   <th :style="varcpStore.styleTableTh">Time Update</th>
                   <th :style="varcpStore.styleTableTh">Status</th>
                   <th :style="varcpStore.styleTableTh">Operations</th>
                 </tr>
               </thead>
               <tbody>
-                <!-- <tr
-                v-for="item of cookingStore.beverageList"
-                :key="item.menuName"
-              > -->
-                <tr v-for="(item, i) of menuQueueStore.menuQueuesW" :key="i">
-                  <!-- <template
-                    v-if="item.menu?.category?.id == 7 && item.status == 'รอทำ'"
-                  > -->
+                <tr v-for="(item, i) of menuQueueStore.menuQueuesWait" :key="i">
                   <td style="font-size: 2.2vh">
                     {{ i + 1 }}
-                    <!-- {{ itemsQueue(item.id!) }} -->
                   </td>
-                  <!-- <td style="font-size: 2.2vh">[...]</td> -->
+
                   <td style="font-size: 2.2vh" class="text-center">
                     {{ item.receipt?.table?.num }}
                   </td>
@@ -181,6 +165,9 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
                   </td>
                   <td style="font-size: 2.2vh">
                     {{ item.note }}
+                  </td>
+                  <td style="font-size: 2.2vh">
+                    {{ item.quantity }}
                   </td>
                   <td style="font-size: 2.2vh">
                     {{ item.updatedAt?.toString().substring(0, 10) }} |
@@ -198,12 +185,7 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
                       class="mx-3 ma-1 vBtnCard button-3d"
                       @click="updateStsMenuQ(item, 'กำลังทำ')"
                     ></v-btn>
-                    <!-- <v-btn
-                        :icon="mdiAlarmCheck"
-                        :style="varcpStore.styleBtnGreen"
-                        class="mx-3 ma-1 vBtnCard button-3d"
-                        @click="updateStsMenuQ(item, 'รอเสิร์ฟ')"
-                      ></v-btn> -->
+
                     <v-btn
                       :icon="mdiDelete"
                       :style="varcpStore.styleBtnRed"
@@ -211,7 +193,6 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
                       @click="cancelMenuQ(item)"
                     ></v-btn>
                   </td>
-                  <!-- </template> -->
                 </tr>
               </tbody>
             </v-table>

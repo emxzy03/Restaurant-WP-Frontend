@@ -7,6 +7,8 @@ import type MenuQueue from "@/types/MenuQueue";
 import { mdiAlarmCheck, mdiDelete } from "@mdi/js"; //mdiEyeSettings mdiTimerSand mdiCheckBold
 import { computed, onMounted, ref } from "vue";
 import ConfirmDialogT from "@/components/ConfirmDialogT.vue";
+import tableMgmt from "@/services/table-mgmt";
+import { reactive } from "vue";
 // import { useMenuStore } from "@/stores/menu";
 // import { useRecieptDetailStore } from "@/stores/reciept_detail";
 // const menuStore = useMenuStore();
@@ -18,24 +20,22 @@ const varcpStore = useVarCompnStore();
 const menuQueueStore = useMenuQueueStore();
 const loginStore = useLoginStore();
 const tableMgmtStore = useTableMgmtStore();
+const isOpenPanel = ref(false);
 onMounted(async () => {
   await tableMgmtStore.getTableMgmts();
-  await menuQueueStore.getMenuQueues();
+  // console.log("table data => ", tableMgmtStore.tableMgmts);
+  await menuQueueStore.getMenuQueues(); //no use
   await loginStore.loadData();
   await menuQueueStore.getCountSList(tableMgmtStore.tableMgmts);
 });
-function showList(num: number) {
-  console.log(selects.value);
+async function showList(num: number) {
   menuQueueStore.tableNumm = num;
-  menuQueueStore.getServeList(menuQueueStore.tableNumm); //selects.value
-  console.log(menuQueueStore.serveList);
+  console.log("menuQueueStore.tableNumm => ", menuQueueStore.tableNumm);
+  await menuQueueStore.getServeList(menuQueueStore.tableNumm); //selects.value
+  await menuQueueStore.getQueueCountServ();
+  // console.log("menuQueueStore.tableNumm => ", menuQueueStore.se);
+  console.log("serveList => ", menuQueueStore.serveList);
 }
-const orderList = computed(() => {
-  console.log(menuQueueStore.countSList);
-  return [...menuQueueStore.countSList].sort(
-    (n1, n2) => n2.numServe - n1.numServe
-  ); //reverse);
-});
 
 const confirmDlg = ref();
 const updateStsMenuQ = async (menuQ: MenuQueue, status: string) => {
@@ -44,9 +44,13 @@ const updateStsMenuQ = async (menuQ: MenuQueue, status: string) => {
       "Please Confirm",
       `คุณต้องการยืนยันการทำรายการนี้ว่า ${status} หรือไม่`
     );
+
     await menuQueueStore.updateStsMenuQ(menuQ, status);
     // menuQueueStore.getServeList();
-    menuQueueStore.getCountSList(tableMgmtStore.tableMgmts);
+    // await tableMgmtStore.getTableMgmts();
+    // showList(menuQ.receipt?.table?.num!);
+    await menuQueueStore.getQueueCountServ();
+    await menuQueueStore.getCountSList(tableMgmtStore.tableMgmts);
   } catch (e) {
     console.log(e);
   }
@@ -60,18 +64,19 @@ const getColorAll = (numList: number) => {
   if (numList > 0) return "brown";
   return "grey";
 };
-// const cancelMenuQ = async (menuQ: MenuQueue) => {
-//   try {
-//     await confirmDlg.value.openDialog(
-//       "Please Confirm",
-//       `คุณต้องการยกเลิกรายการนี้หรือไม่`
-//     );
-//     await menuQueueStore.updateStsMenuQ(menuQ);
-//     await menuQueueStore.cancelMenuQueue(menuQ);
-//   } catch (e) {
-//     console.log(e);
-//   }
-// };
+
+const findCountServed = (index: number) => {
+  const foundCount = menuQueueStore.serveQueueCountList.find(
+    (count) => count.tableNumber === index
+  );
+  return foundCount ? foundCount.served : 0;
+};
+const findCountServe = (index: number) => {
+  const foundCount = menuQueueStore.serveQueueCountList.find(
+    (count) => count.tableNumber === index
+  );
+  return foundCount ? foundCount.serve : 0;
+};
 </script>
 
 <template>
@@ -80,24 +85,31 @@ const getColorAll = (numList: number) => {
       <v-container style="background-color: rgb(80, 50, 0)">
         <v-expansion-panels variant="accordion">
           <!-- v-model="selects" -->
-          <v-expansion-panel
+          <!-- <v-expansion-panel
             v-for="(item, i) of orderList"
             :key="i"
             :style="varcpStore.styleTable"
             @click="showList(item.table.num)"
+          > -->
+          <v-expansion-panel
+            v-for="(item, i) of tableMgmtStore.tableServe"
+            :key="i"
+            :style="varcpStore.styleTable"
+            @click="showList(item.num)"
           >
-            <v-expansion-panel-title v-slot="{ open }">
+            <!-- <v-expansion-panel-title v-slot="{ open }"> -->
+            <v-expansion-panel-title>
               <v-row no-gutters>
                 <v-col
                   cols="4"
                   class="d-flex justify-start"
                   style="font-size: 2.7vh"
                 >
-                  Table No.{{ item.table.num }}</v-col
+                  Table No.{{ item.num }}</v-col
                 >
                 <v-col cols="5" class="text--secondary">
                   <v-fade-transition leave-absolute>
-                    <span v-if="open" key="0"> List </span>
+                    <span v-if="isOpenPanel" key="0"> List </span>
                     <span v-else key="1">
                       <!-- number of items
                       <v-chip
@@ -112,21 +124,21 @@ const getColorAll = (numList: number) => {
                 <v-col cols="3" class="d-flex justify-start">
                   <div class="ma-1 pt-2" style="font-size: 2.5vh">Serve :</div>
                   <v-chip
-                    :color="getColor(item.numServe)"
+                    :color="getColor(item.served)"
                     dark
                     class="ma-1"
                     style="font-size: 2.5vh"
                   >
-                    {{ item.numServe }}
+                    {{ findCountServed(item.num) }}
                   </v-chip>
                   <v-chip color="grey" dark class="ma-1"> / </v-chip>
                   <v-chip
-                    :color="getColorAll(item.numAll)"
+                    :color="getColorAll(item.serve)"
                     dark
                     class="ma-1"
                     style="font-size: 2.5vh"
                   >
-                    {{ item.numAll }}
+                    {{ findCountServe(item.num) }}
                   </v-chip>
                 </v-col>
               </v-row>
@@ -158,16 +170,15 @@ const getColorAll = (numList: number) => {
                           <!-- <template v-if="item.status == 'รอเสิร์ฟ'"> -->
                           <!-- <td>{{ item.receipt?.table?.num }}</td> -->
                           <td>
-                            {{ item.menu?.name }}
+                            {{ item.name }}
                           </td>
                           <td>{{ item.status }}</td>
                           <td>
                             <v-btn
-                              v-if="item.status == 'รอเสิร์ฟ'"
                               :icon="mdiAlarmCheck"
                               :style="varcpStore.styleBtnGreen"
                               class="mx-3 ma-1 vBtnCard button-3d"
-                              @click="updateStsMenuQ(item, 'เสิร์ฟแล้ว')"
+                              @click="updateStsMenuQ(item, 'เสร็จสิ้น')"
                             ></v-btn>
                             <!-- <v-btn
                               :icon="mdiDelete"

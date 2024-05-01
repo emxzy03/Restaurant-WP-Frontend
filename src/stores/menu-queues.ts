@@ -10,18 +10,29 @@ import { useMessageStore } from "./message";
 import type Receipt from "@/types/Receipt";
 import type TableMgmt from "@/types/TableManagement";
 import type Serve from "@/types/Serve";
+import type ServeQueues from "@/types/ServeQueues";
+import tableMgmt from "@/services/table-mgmt";
 
 export const useMenuQueueStore = defineStore("menuQueue", () => {
   const loadingStore = useLoadingStore();
+  const round = 0;
+  // const menuQueues = ref<MenuQueue[]>([]);
+  // const menuQueuesC = ref<MenuQueue[]>([]);
+  // const menuQueuesDo = ref<MenuQueue[]>([]);
+  // const menuQueuesW = ref<MenuQueue[]>([]);
+
   const menuQueues = ref<MenuQueue[]>([]);
-  const menuQueuesC = ref<MenuQueue[]>([]);
-  const menuQueuesDo = ref<MenuQueue[]>([]);
-  const menuQueuesW = ref<MenuQueue[]>([]);
+  const menuQueuesHistory = ref<MenuQueue[]>([]);
+  const menuQueuesDoing = ref<MenuQueue[]>([]);
+  const menuQueuesWait = ref<MenuQueue[]>([]);
+  const menuQueuesDoingWater = ref<MenuQueue[]>([]);
+  const menuQueuesWaitWater = ref<MenuQueue[]>([]);
   const messageStore = useMessageStore();
   const loginStore = useLoginStore();
   const editedMenuQueue = ref<MenuQueue>({
     name: "",
     note: "",
+    quantity: 0,
     status: "",
     menu: <Menu>{},
     receipt: <Receipt>{},
@@ -31,49 +42,116 @@ export const useMenuQueueStore = defineStore("menuQueue", () => {
   const countSList = ref<Serve[]>([]);
   const select = ref();
   const selectS = ref();
+  const serveQueueCountList = ref<ServeQueues[]>([]);
 
-  async function getMenuQueues() {
-    menuQueuesC.value = [];
+  // async function getMenuQueues() {
+  //   // menuQueuesC.value = [];
+  //   loadingStore.isLoading = true;
+  //   try {
+  //     const res = await menuQueueService.getMenuQueues();
+  //     for (const r of res.data) {
+  //       if (r.receipt?.status === "รอชำระเงิน") {
+  //         menuQueuesC.value.push(r);
+  //       }
+  //     }
+  //     // menuQueues.value = res.data;
+  //     menuQueues.value = menuQueuesC.value;
+  //     console.log(res);
+  //   } catch (e) {
+  //     console.log(e);
+  //     messageStore.showMessage("ไม่สามารถดึง Menu Queues ได้");
+  //   }
+  //   await getByCateDo(select.value);
+  //   await getByCateW(select.value);
+  //   await getServeList(tableNumm.value);
+  //   loadingStore.isLoading = false;
+  // }
+  async function getMenuQueuesHistory() {
     loadingStore.isLoading = true;
     try {
-      const res = await menuQueueService.getMenuQueues();
-      for (const r of res.data) {
-        if (r.receipt?.status === "รอชำระเงิน") {
-          menuQueuesC.value.push(r);
+      menuQueuesHistory.value = [];
+      const menuHis = await menuQueueService.getMenuQueuesHistory();
+      console.log("menu History ", menuHis.data);
+      for (const menu of menuHis.data) {
+        if (
+          menu.receipt.status === "รอชำระเงิน" ||
+          menu.receipt.status === "เสร็จสิ้น"
+        ) {
+          console.log("History  ", menu);
+          menuQueuesHistory.value.push(menu);
         }
       }
-      // menuQueues.value = res.data;
-      menuQueues.value = menuQueuesC.value;
-      console.log(res);
+    } catch (e) {
+      console.log(e);
+      messageStore.showMessage("ไม่สามารถดึง Menu History ได้");
+    }
+    loadingStore.isLoading = false;
+    console.log(menuQueuesHistory);
+  }
+  async function getMenuQueuesDrink() {
+    menuQueuesDoingWater.value = [];
+    menuQueuesWaitWater.value = [];
+    loadingStore.isLoading = true;
+    try {
+      const res = await menuQueueService.getMenuQueueByCondition(2);
+      for (const r of res.data) {
+        if (r.status === "กำลังทำ") {
+          console.log("Doing Water =>", r);
+          menuQueuesDoingWater.value.push(r);
+        } else if (r.status === "รอทำ") {
+          console.log("Wait Water =>", r);
+          menuQueuesWaitWater.value.push(r);
+        }
+      }
     } catch (e) {
       console.log(e);
       messageStore.showMessage("ไม่สามารถดึง Menu Queues ได้");
     }
-    await getByCateDo(select.value);
-    await getByCateW(select.value);
-    await getServeList(tableNumm.value);
+
     loadingStore.isLoading = false;
   }
-
-  async function getByCateDo(select: number) {
-    menuQueuesDo.value = [];
-    // await getMenuQueues();
-    for (const q of menuQueues.value) {
-      if (q.status === "กำลังทำ" && q.menu?.category?.id == select) {
-        menuQueuesDo.value.push(q);
+  async function getMenuQueues() {
+    // menuQueuesHistory.value = [];
+    menuQueuesDoing.value = [];
+    menuQueuesWait.value = [];
+    loadingStore.isLoading = true;
+    try {
+      const res = await menuQueueService.getMenuQueues();
+      for (const r of res.data) {
+        if (r.status === "กำลังทำ") {
+          console.log("Doing Food =>", r);
+          menuQueuesDoing.value.push(r);
+        } else if (r.status === "รอทำ") {
+          console.log("Wait Food=>", r);
+          menuQueuesWait.value.push(r);
+        }
       }
+    } catch (e) {
+      console.log(e);
+      messageStore.showMessage("ไม่สามารถดึง Menu Queues ได้");
     }
-  }
 
-  async function getByCateW(select: number) {
-    menuQueuesW.value = [];
-    // await getMenuQueues();
-    for (const q of menuQueues.value) {
-      if (q.status === "รอทำ" && q.menu?.category?.id == select) {
-        menuQueuesW.value.push(q);
-      }
-    }
+    loadingStore.isLoading = false;
   }
+  // async function getByCateDo(select: number) {
+  //   menuQueuesDo.value = [];
+  //   // await getMenuQueues();
+  //   for (const q of menuQueues.value) {
+  //     if (q.status === "กำลังทำ" && q.menu?.category?.id == select) {
+  //       menuQueuesDo.value.push(q);
+  //     }
+  //   }
+  // }
+
+  // async function getByCateW(select: number) {
+  //   menuQueuesW.value = [];
+  //   // await getMenuQueues();
+  //   for (const q of menuQueues.value) {
+  //     if (q.status === "รอทำ" && q.menu?.category?.id == select) {
+  //       menuQueuesW.value.push(q);
+  //     }
+  //   }
+  // }
 
   async function saveMenuQueue() {
     loadingStore.isLoading = true;
@@ -95,60 +173,86 @@ export const useMenuQueueStore = defineStore("menuQueue", () => {
     loadingStore.isLoading = false;
   }
 
-  async function updateStsMenuQ(menuQueue: MenuQueue, status?: string) {
+  async function updateStsMenuQ(menuQueue: MenuQueue, status: string) {
     loadingStore.isLoading = true;
-
     try {
-      const resM = await menuQueueService.getOneMenuQueue(menuQueue.id!);
-      const menuQ = resM.data;
-      const resE = await employeeService.getOneEmployee(
-        parseInt(loginStore.userIdNow)
-      );
-      const empDo = resE.data;
-
-      if (
-        empDo.role === "waitress" &&
-        status === "เสิร์ฟแล้ว" &&
-        menuQ.status === "รอเสิร์ฟ" &&
-        menuQ.receipt?.status === "รอชำระเงิน"
-      ) {
-        console.log(
-          empDo.role +
-            status +
-            menuQ.status +
-            (status === "เสิร์ฟแล้ว" && menuQ.status === "รอเสิร์ฟ")
-        );
-        menuQ.waitress = empDo;
-        // if (status === "เสิร์ฟแล้ว" && menuQ.status === "รอเสิร์ฟ") {
-        menuQ.status = status;
-        await menuQueueService.updateMenuQueue(menuQ.id, menuQ);
-        // }
-      } else if (empDo.role !== "waitress" && status !== "เสิร์ฟแล้ว") {
-        // console.log(empDo);
-        menuQ.chef = empDo;
-        if (
-          status === "รอเสิร์ฟ" &&
-          menuQ.status !== "กำลังทำ" &&
-          menuQ.receipt?.status === "รอชำระเงิน"
-        ) {
-          messageStore.showMessage("Menu Queue นี้ยังไม่ถูกทำ");
-        } else if (status === "กำลังทำ" && menuQ.status !== "รอทำ") {
-          messageStore.showMessage("Menu Queue ถูกรับรายการไปแล้ว");
-        } else {
-          menuQ.status = status;
-          await menuQueueService.updateMenuQueue(menuQ.id, menuQ);
-        }
-      } else {
-        messageStore.showMessage("ไม่สามารถบันทึก Menu Queue ได้");
-      }
+      await menuQueueService.updateMenuQueue(menuQueue.id!, status);
       await getMenuQueues();
-      await getServeList(tableNumm.value);
+      // await getServeList(tableNumm.value);
+      // await tableMgmt.getTableMgmts();
+      // await menuQueueService.getOneMenuQueueServ(menuQueue.id!);
     } catch (e) {
       console.log(e);
       messageStore.showMessage("ไม่สามารถบันทึก Menu Queue ได้");
     }
     loadingStore.isLoading = false;
   }
+
+  async function getQueueCountServ() {
+    loadingStore.isLoading = true;
+    try {
+      const countMQServe = await menuQueueService.getMenuQueueCountServe();
+      serveQueueCountList.value = countMQServe.data;
+    } catch (e) {
+      console.log(e);
+      messageStore.showMessage("ไม่สามารถหาจำนวน serve ได้");
+    }
+    loadingStore.isLoading = false;
+  }
+  // async function updateStsMenuQ(menuQueue: MenuQueue, status?: string) {
+  //   loadingStore.isLoading = true;
+
+  //   try {
+  //     const resM = await menuQueueService.getOneMenuQueue(menuQueue.id!);
+  //     const menuQ = resM.data;
+  //     const resE = await employeeService.getOneEmployee(
+  //       parseInt(loginStore.userIdNow)
+  //     );
+  //     const empDo = resE.data;
+
+  //     if (
+  //       empDo.role === "waitress" &&
+  //       status === "เสิร์ฟแล้ว" &&
+  //       menuQ.status === "รอเสิร์ฟ" &&
+  //       menuQ.receipt?.status === "รอชำระเงิน"
+  //     ) {
+  //       console.log(
+  //         empDo.role +
+  //           status +
+  //           menuQ.status +
+  //           (status === "เสิร์ฟแล้ว" && menuQ.status === "รอเสิร์ฟ")
+  //       );
+  //       menuQ.waitress = empDo;
+  //       // if (status === "เสิร์ฟแล้ว" && menuQ.status === "รอเสิร์ฟ") {
+  //       menuQ.status = status;
+  //       await menuQueueService.updateMenuQueue(menuQ.id, menuQ);
+  //       // }
+  //     } else if (empDo.role !== "waitress" && status !== "เสิร์ฟแล้ว") {
+  //       // console.log(empDo);
+  //       menuQ.chef = empDo;
+  //       if (
+  //         status === "รอเสิร์ฟ" &&
+  //         menuQ.status !== "กำลังทำ" &&
+  //         menuQ.receipt?.status === "รอชำระเงิน"
+  //       ) {
+  //         messageStore.showMessage("Menu Queue นี้ยังไม่ถูกทำ");
+  //       } else if (status === "กำลังทำ" && menuQ.status !== "รอทำ") {
+  //         messageStore.showMessage("Menu Queue ถูกรับรายการไปแล้ว");
+  //       } else {
+  //         menuQ.status = status;
+  //         await menuQueueService.updateMenuQueue(menuQ.id, menuQ);
+  //       }
+  //     } else {
+  //       messageStore.showMessage("ไม่สามารถบันทึก Menu Queue ได้");
+  //     }
+  //     await getMenuQueues();
+  //     await getServeList(tableNumm.value);
+  //   } catch (e) {
+  //     console.log(e);
+  //     messageStore.showMessage("ไม่สามารถบันทึก Menu Queue ได้");
+  //   }
+  //   loadingStore.isLoading = false;
+  // }
 
   // function editMenuQueue(MenuQueue: MenuQueue) {
   //   loadingStore.isLoading = true;
@@ -160,6 +264,7 @@ export const useMenuQueueStore = defineStore("menuQueue", () => {
     editedMenuQueue.value = {
       name: "",
       note: "",
+      quantity: 0,
       status: "",
       menu: <Menu>{},
       receipt: <Receipt>{},
@@ -169,7 +274,9 @@ export const useMenuQueueStore = defineStore("menuQueue", () => {
   async function cancelMenuQueue(menuQueue: MenuQueue) {
     loadingStore.isLoading = true;
     try {
-      await menuQueueService.deleteMenuQueue(menuQueue.id!);
+      const cancel = "ยกเลิก";
+      // await menuQueueService.deleteMenuQueue(menuQueue.id!);
+      await menuQueueService.updateMenuQueue(menuQueue.id!, cancel);
       await getMenuQueues();
     } catch (e) {
       console.log(e);
@@ -177,28 +284,56 @@ export const useMenuQueueStore = defineStore("menuQueue", () => {
     }
     loadingStore.isLoading = false;
   }
+  // async function cancelMenuQueue(menuQueue: MenuQueue) {
+  //   loadingStore.isLoading = true;
+  //   try {
+  //     await menuQueueService.deleteMenuQueue(menuQueue.id!);
+  //     await getMenuQueues();
+  //   } catch (e) {
+  //     console.log(e);
+  //     messageStore.showMessage("ไม่สามารถยกเลิก Menu Queue นี้ได้");
+  //   }
+  //   loadingStore.isLoading = false;
+  // }
 
   async function getServeList(num: number) {
+    loadingStore.isLoading = true;
     serveList.value = [];
-    for (const mQueue of menuQueues.value) {
-      if (
-        mQueue.receipt?.table?.num == num &&
-        // mQueue.receipt?.status === "รอชำระเงิน" &&
-        mQueue.status === "รอเสิร์ฟ"
-      ) {
+    try {
+      // const serv = await menuQueueService.getMenuQueuesServ();
+      const serv = await menuQueueService.getMenuQueuesServByTableNum(num);
+      for (const mQueue of serv.data) {
         await serveList.value.push(mQueue);
       }
+    } catch (e) {
+      console.log(e);
+      messageStore.showMessage("ไม่สามารถเสิร์ฟ Menu นี้ได้");
     }
-    for (const mQueue of menuQueues.value) {
-      if (
-        mQueue.receipt?.table?.num == num &&
-        // mQueue.receipt?.status === "รอชำระเงิน" &&
-        mQueue.status !== "รอเสิร์ฟ"
-      ) {
-        await serveList.value.push(mQueue);
-      }
-    }
+    loadingStore.isLoading = false;
   }
+
+  // async function getServeList(num: number) {
+  //   serveList.value = [];
+  //   for (const mQueue of menuQueues.value) {
+  //     if (
+  //       mQueue.receipt?.table?.num == num &&
+  //       // mQueue.receipt?.status === "รอชำระเงิน" &&
+  //       mQueue.status === "รอเสิร์ฟ"
+  //     ) {
+  //       await serveList.value.push(mQueue);
+  //     }
+  //   }
+  //   for (const mQueue of menuQueues.value) {
+  //     if (
+  //       mQueue.receipt?.table?.num == num &&
+  //       // mQueue.receipt?.status === "รอชำระเงิน" &&
+  //       mQueue.status !== "รอเสิร์ฟ"
+  //     ) {
+  //       await serveList.value.push(mQueue);
+  //     }
+  //   }
+  // }
+
   const countS = (item: number): number => {
     let count = 0;
     for (let i = 0; i < menuQueues.value.length; i++) {
@@ -256,11 +391,20 @@ export const useMenuQueueStore = defineStore("menuQueue", () => {
     tableNumm,
     countSList,
     getCountSList,
-    getByCateDo,
-    getByCateW,
-    menuQueuesW,
-    menuQueuesDo,
+    // getByCateDo,
+    // getByCateW,
+    // menuQueuesW,
+    // menuQueuesDo,
+    menuQueuesDoing,
+    menuQueuesWait,
+    menuQueuesHistory,
     select,
     selectS,
+    getMenuQueuesHistory,
+    getMenuQueuesDrink,
+    menuQueuesDoingWater,
+    menuQueuesWaitWater,
+    serveQueueCountList,
+    getQueueCountServ,
   };
 });

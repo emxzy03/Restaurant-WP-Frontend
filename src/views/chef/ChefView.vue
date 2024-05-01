@@ -6,38 +6,47 @@ import { useMenuStore } from "@/stores/menu";
 import { useMenuQueueStore } from "@/stores/menu-queues";
 import { useLoginStore } from "@/stores/login";
 import { onMounted } from "vue";
-// import { ref } from "vue";
-// const isBeverage = ref(false);
 const menuStore = useMenuStore();
-// const colorBtn = (status: boolean): string => {
-//   if (status == true) {
-//     return "rgb(72, 101, 22)";
-//   }
-//   return "rgb(243, 245, 225)";
-// };
 const menuQueueStore = useMenuQueueStore();
 const loginStore = useLoginStore();
+
 onMounted(async () => {
   await menuQueueStore.getMenuQueues();
-  await loginStore.loadData();
-  if (loginStore.userRoleNow == "beverage manager") {
+  await menuQueueStore.getMenuQueuesDrink();
+  await loginStore.loadData(); //must move login to employee
+  if (loginStore.userRoleNow == "manager") {
     menuStore.isBeverage = true;
   } else {
     menuStore.isBeverage = false;
   }
 });
+const isBeverage = () => {
+  menuStore.isBeverage = true;
+  getMenuQueues();
+};
+
+const noBeverage = () => {
+  menuStore.isBeverage = false;
+  getMenuQueues();
+};
+
+const getMenuQueues = async () => {
+  await menuQueueStore.getMenuQueues();
+  await menuQueueStore.getMenuQueuesDrink();
+  await loginStore.loadData();
+};
 </script>
 
 <template>
   <v-container>
     <v-row class="justify-center">
-      <v-btn
+      <!-- <v-btn
         :icon="mdiFoodTurkey"
         size="x-large"
         class="vBtnCard button-3d"
         flat
         style="color: rgb(243, 245, 225)"
-        @click="menuStore.isBeverage = false"
+        @click="noBeverage()"
         :style="{
           backgroundColor: !menuStore.isBeverage
             ? 'rgb(72, 101, 22) !important'
@@ -51,21 +60,22 @@ onMounted(async () => {
         class="vBtnCard button-3d"
         flat
         style="color: rgb(243, 245, 225)"
-        @click="menuStore.isBeverage = true"
+        @click="isBeverage()"
         :style="{
           backgroundColor: menuStore.isBeverage
             ? 'rgb(72, 101, 22) !important'
             : '',
         }"
-      ></v-btn>
+      ></v-btn> -->
       <!--background-color: rgb(80, 50, 0);  style="background-color: rgb(243, 245, 225); color: rgb(156, 73, 45)" -->
     </v-row>
     <!-- <v-row>
       <v-divider></v-divider>
     </v-row> -->
     <v-row>
-      <MenuList v-if="!menuStore.isBeverage" />
-      <BeverageList v-if="menuStore.isBeverage" />
+      <!-- <MenuList v-if="!menuStore.isBeverage" />
+      <BeverageList v-else /> -->
+      <BeverageList />
     </v-row>
   </v-container>
 </template>

@@ -8,7 +8,6 @@ import type TableMgmt from "@/types/TableManagement";
 import { mdiSilverwareFork, mdiSilverwareSpoon } from "@mdi/js";
 import { useRouter } from "vue-router";
 import QRCodeVue3 from "qrcode-vue3";
-import { reactive } from "vue";
 onMounted(async () => {
   await receiptStore.getReceipts();
 });
@@ -17,18 +16,11 @@ const receiptStore = useReceiptStore();
 const confirmDlgs = ref();
 const moveDlgs = ref();
 const router = useRouter();
-const state = reactive({
-  urlPOS: "",
-});
-onMounted(() => {
-  state.urlPOS = tableStore.baseUrlPOS;
-});
-
-const openQR = (tableId: number) => {
-  return state.urlPOS + tableId;
-};
-
 async function openSellView(table: TableMgmt) {
+  // receiptStore.editedReceipt.table = table;
+  // console.log(receiptStore.editedReceipt.table);
+  // console.log(receiptStore.editedReceipt);
+  // await receiptStore.saveReceipt();
   await receiptStore.openR(table);
   router.push("/receipt/" + receiptStore.uuidReceipt);
 }
@@ -107,7 +99,7 @@ const cancelTable = async (id: number, seat: number, item: TableMgmt) => {
                 v-if="tableStore.editedTableMgmt.status == 'ไม่ว่าง'"
                 :width="200"
                 :height="200"
-                :value="openQR(tableStore.editedTableMgmt.id!)"
+                :value="receiptStore.urlSellView"
                 :qrOptions="{
                   typeNumber: 0,
                   mode: 'Byte',

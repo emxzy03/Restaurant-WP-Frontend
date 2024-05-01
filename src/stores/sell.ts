@@ -9,6 +9,7 @@ import type Receipt from "@/types/Receipt";
 import type MenuQueue from "@/types/MenuQueue";
 import { useRoute } from "vue-router";
 import { useReceiptStore } from "./receipt";
+import tableMgmt from "@/services/table-mgmt";
 
 export const useSellStore = defineStore("sell", () => {
   const colorStatus = ref("#EEEEEE");
@@ -20,6 +21,7 @@ export const useSellStore = defineStore("sell", () => {
   const textSearch = ref("");
   const dialog = ref(false);
   const billDialog = ref(false);
+  // const isTableId =
   const menuDetail = ref<
     Menu & { quantity?: number; total?: number; note?: string }
   >({
@@ -106,42 +108,24 @@ export const useSellStore = defineStore("sell", () => {
     cartDetail.value = [];
   };
 
-  const confirm = async () => {
-    //GET receipt
-    await receiptStore.getOneReceiptsByUUid(getReceiptUuid());
-
-    const id = receiptStore.receiptsAt?.id;
-
-    //PATCH receipt
-    const updateReceipt = ref<Receipt>({
-      receiptDetail: [],
-    });
-    cartDetail.value.forEach((element) => {
-      updateReceipt.value.receiptDetail!.push({
-        menuId: element.menuId!,
-        quantity: element.quantity!,
-      });
-    });
-
-    //POST menu_queue
-    const listMenuQueue = ref<MenuQueue[]>([]);
-    cartDetail.value.forEach((element) => {
-      for (let i = 0; i < element.quantity; i++) {
-        const menu_queue = ref<MenuQueue>({
-          name: element.name!,
-          note: element.note!,
-          status: "รอทำ",
-          menuId: element.menuId,
-          receiptId: id,
-        });
-        listMenuQueue.value.push(menu_queue.value);
-      }
-    });
+  const confirm = async (tableId: number) => {
     try {
-      await receiptService.updateReceipts(id!, updateReceipt.value!);
-      listMenuQueue.value.forEach(async (element) => {
-        await menuqueueService.saveMenuQueue(element);
+      //Get Table
+      const table = await tableMgmt.getOneTableMgmt(tableId);
+
+      //POST receipt
+      const updateReceipt = ref<Receipt>({
+        receiptDetail: [],
+        table: table.data,
       });
+      cartDetail.value.forEach((element) => {
+        updateReceipt.value.receiptDetail!.push({
+          menuId: element.menuId!,
+          quantity: element.quantity!,
+        });
+      });
+      // console.log("receipt data for POST => ", updateReceipt);
+      await receiptService.saveReceipts(updateReceipt.value);
     } catch (e) {
       console.log(e);
       messageStore.showMessage("ไม่สามารถสั่งอาหารได้");
@@ -151,6 +135,53 @@ export const useSellStore = defineStore("sell", () => {
     checkReceiptDetail();
     clear();
   };
+
+  // const confirm = async () => {
+  //   //GET receipt
+  //   await receiptStore.getOneReceiptsByUUid(getReceiptUuid());
+
+  //   const id = receiptStore.receiptsAt?.id;
+
+  //   //PATCH receipt
+  //   const updateReceipt = ref<Receipt>({
+  //     receiptDetail: [],
+  //   });
+  //   cartDetail.value.forEach((element) => {
+  //     updateReceipt.value.receiptDetail!.push({
+  //       menuId: element.menuId!,
+  //       quantity: element.quantity!,
+  //     });
+  //   });
+
+  //   //POST menu_queue
+  //   const listMenuQueue = ref<MenuQueue[]>([]);
+  //   cartDetail.value.forEach((element) => {
+  //     for (let i = 0; i < element.quantity; i++) {
+  //       const menu_queue = ref<MenuQueue>({
+  //         name: element.name!,
+  //         note: element.note!,
+  //         status: "รอทำ",
+  //         menuId: element.menuId,
+  //         receiptId: id,
+  //         quantity: 1,
+  //       });
+  //       listMenuQueue.value.push(menu_queue.value);
+  //     }
+  //   });
+  //   try {
+  //     await receiptService.updateReceipts(id!, updateReceipt.value!);
+  //     listMenuQueue.value.forEach(async (element) => {
+  //       await menuqueueService.saveMenuQueue(element);
+  //     });
+  //   } catch (e) {
+  //     console.log(e);
+  //     messageStore.showMessage("ไม่สามารถสั่งอาหารได้");
+  //   }
+
+  //   await receiptStore.getOneReceiptsByUUid(getReceiptUuid());
+  //   checkReceiptDetail();
+  //   clear();
+  // };
 
   const checkReceiptDetail = () => {
     if (receiptStore.receiptsAt?.receiptDetail != undefined) {

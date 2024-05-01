@@ -197,6 +197,9 @@ const varcpStore = useVarCompnStore();
 </template>
 
 <style scoped>
+v-table {
+  width: auto;
+}
 .button-3d {
   position: relative;
   width: auto;

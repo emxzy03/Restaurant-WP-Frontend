@@ -7,7 +7,7 @@ const sellStore = useSellStore();
 </script>
 
 <template>
-  <CartList
+  <!-- <CartList
     v-if="sellStore.isPos == false && sellStore.isOrder == false"
   ></CartList>
   <OrderList
@@ -15,7 +15,12 @@ const sellStore = useSellStore();
   ></OrderList>
   <PosView
     v-else-if="sellStore.isPos == true && sellStore.isOrder == false"
-  ></PosView>
+  ></PosView> -->
+
+  <!-- test -->
+  <CartList></CartList>
+  <OrderList></OrderList>
+  <PosView></PosView>
 </template>
 
 <style scoped></style>

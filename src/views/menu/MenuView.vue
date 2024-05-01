@@ -8,7 +8,6 @@ import MenuDialog from "./MenuDialog.vue";
 
 const menuStore = useMenuStore();
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
 onMounted(async () => {
   await menuStore.getMenus();
 });
@@ -60,13 +59,7 @@ const varcpStore = useVarCompnStore();
                 >
                   {{ item.id }}
                 </td>
-                <td
-                  style="font-size: 2.2vh"
-                  v-if="
-                    varcpStore.valuesMatAutocom == item.name ||
-                    varcpStore.valuesMatAutocom == null
-                  "
-                >
+                <td>
                   <v-img
                     :src="`${backendUrl}/menus/image/${item.image}`"
                     height="64px"

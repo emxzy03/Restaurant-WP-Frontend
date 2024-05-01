@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import tableMgmt from "@/services/table-mgmt";
 import { useTableMgmtStore } from "@/stores/table-mgmt";
 import { onMounted, ref } from "vue";
 const TableStore = useTableMgmtStore();
@@ -7,6 +8,7 @@ onMounted(async () => {
   await TableStore.getNumReady();
   await TableStore.getNumClean();
   await TableStore.getNumBusy();
+  console.log("TableStore.tableMgmts => ", TableStore.tableMgmts);
 });
 </script>
 <template>

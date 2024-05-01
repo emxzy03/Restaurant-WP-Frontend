@@ -32,9 +32,9 @@ export const useLoginStore = defineStore("login", () => {
   const login = async (username: string, password: string): Promise<void> => {
     loadingStore.isLoading = true;
     try {
-      console.log({ username, password });
+      // console.log({ username, password });
       const res = await auth.login(username, password);
-      console.log(res);
+      // console.log(res);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       localStorage.setItem("token", res.data.access_token);
       loginName.value = username;

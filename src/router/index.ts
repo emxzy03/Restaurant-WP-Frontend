@@ -213,6 +213,7 @@ const router = createRouter({
       },
       meta: {
         layout: "MainLayout",
+        requiresAuth: true,
       },
     },
     {
@@ -256,9 +257,22 @@ const router = createRouter({
         requiresURole: ["manager", "owner", "cashier"],
       },
     },
+    // {
+    //   path: "/receipt/:id",
+    //   // path: "/receipt/pos",
+    //   name: "Sell-id",
+    //   components: {
+    //     default: import("../views/point_of_sell/SellView.vue"),
+    //     header: () => import("@/components/headers/ManageHeader.vue"),
+    //   },
+    //   meta: {
+    //     layout: "FullLayout",
+    //   },
+    // },
     {
-      path: "/receipt/:id",
-      name: "Sell-id",
+      path: "/POS-menus",
+      // path: "/receipt/pos",
+      name: "pos-sell",
       components: {
         default: import("../views/point_of_sell/SellView.vue"),
         header: () => import("@/components/headers/ManageHeader.vue"),

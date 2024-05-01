@@ -38,7 +38,7 @@ onMounted(async () => {
   } else {
     menuQueueStore.select = undefined;
   }
-  await menuQueueStore.getMenuQueues();
+  // await menuQueueStore.getMenuQueues();
   // await menuQueueStore.getByCateDo(menuQueueStore.select);
   // await menuQueueStore.getByCateW(menuQueueStore.select);
 });
@@ -59,9 +59,9 @@ const selects = ref(); //ref("");
 const showList = async () => {
   // queue = 0;
   // cookingStore.cate(menuQueueStore.select);
-  console.log(menuQueueStore.select);
-  await menuQueueStore.getByCateDo(menuQueueStore.select);
-  await menuQueueStore.getByCateW(menuQueueStore.select);
+  // console.log(menuQueueStore.select);
+  // await menuQueueStore.getByCateDo(menuQueueStore.select);
+  // await menuQueueStore.getByCateW(menuQueueStore.select);
 };
 
 const updateStsMenuQ = async (menuQ: MenuQueue, status: string) => {
@@ -82,7 +82,7 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
       "Please Confirm",
       `คุณต้องการยกเลิกรายการนี้หรือไม่`
     );
-    await menuQueueStore.updateStsMenuQ(menuQ);
+    // await menuQueueStore.updateStsMenuQ(menuQ);
     await menuQueueStore.cancelMenuQueue(menuQ);
   } catch (e) {
     console.log(e);
@@ -146,7 +146,10 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
 
               <tbody>
                 <!-- <tr v-for="item of cookingStore.cookingListc" :key="item.id"> -->
-                <tr v-for="(item, i) of menuQueueStore.menuQueuesDo" :key="i">
+                <tr
+                  v-for="(item, i) of menuQueueStore.menuQueuesDoing"
+                  :key="i"
+                >
                   <!-- <template
                     v-if="
                       item.menu!.category?.id != 7 &&
@@ -155,21 +158,19 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
                         selects == undefined)
                     "
                   > -->
-                  <td style="font-size: 2.2vh">
+                  <td>
                     {{ i + 1 }}
                     <!-- {{ itemsQueue(item.id!) }} -->
                   </td>
                   <!-- <td style="font-size: 2.2vh">[...]</td> -->
-                  <td style="font-size: 2.2vh" class="text-center">
-                    {{ item.receipt!.table!.num }}
-                  </td>
-                  <td style="font-size: 2.2vh">
+                  <td>{{ item.receipt!.table!.num }} From Men List</td>
+                  <td>
                     {{ item.name }}
                   </td>
-                  <td style="font-size: 2.2vh">
+                  <td>
                     {{ item.note }}
                   </td>
-                  <td style="font-size: 2.2vh">
+                  <td>
                     {{ item.updatedAt?.toString().substring(0, 10) }} |
                     {{
                       item.updatedAt
@@ -232,7 +233,10 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
 
               <tbody>
                 <!-- <tr v-for="item of cookingStore.cookingListc" :key="item.id"> -->
-                <tr v-for="(item, i) of menuQueueStore.menuQueuesW" :key="i">
+                <tr
+                  v-for="(item, i) of menuQueueStore.menuQueuesDoing"
+                  :key="i"
+                >
                   <!-- <template
                     v-if="
                       item.menu!.category?.id != 7 &&
@@ -241,21 +245,21 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
                         selects == undefined)
                     "
                   > -->
-                  <td style="font-size: 2.2vh">
+                  <td>
                     {{ i + 1 }}
                     <!-- {{ itemsQueue(item.id!) }} -->
                   </td>
                   <!-- <td style="font-size: 2.2vh">[...]</td> -->
-                  <td style="font-size: 2.2vh" class="text-center">
+                  <td>
                     {{ item.receipt!.table!.num }}
                   </td>
-                  <td style="font-size: 2.2vh">
+                  <td>
                     {{ item.name }}
                   </td>
-                  <td style="font-size: 2.2vh">
+                  <td>
                     {{ item.note }}
                   </td>
-                  <td style="font-size: 2.2vh">
+                  <td>
                     {{ item.updatedAt?.toString().substring(0, 10) }} |
                     {{
                       item.updatedAt
@@ -263,7 +267,7 @@ const cancelMenuQ = async (menuQ: MenuQueue) => {
                         .substring(11, item.updatedAt?.toString().length - 5)
                     }}
                   </td>
-                  <td style="font-size: 2.2vh">{{ item.status }}</td>
+                  <td s>{{ item.status }}</td>
                   <td>
                     <v-btn
                       :icon="mdiCookieClock"

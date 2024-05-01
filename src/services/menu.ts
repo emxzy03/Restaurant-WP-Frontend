@@ -5,6 +5,10 @@ function getMenus() {
   return http.get("/menus");
 }
 
+// function getCondition(con: string) {
+//   return http.get(`/category/` + con);
+// }
+
 function saveMenu(menu: Menu & { files: File[] }) {
   const formData = new FormData();
   formData.append("name", menu.name);

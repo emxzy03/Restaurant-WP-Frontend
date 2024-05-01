@@ -17,7 +17,7 @@ export default interface Receipt {
   employee?: Employee;
   empid?: number;
   table?: TableMgmt;
-  tableid?: number;
+  tableId?: number;
   receiptDetail?: ReceiptDetail[];
   uuidI?: string;
   // createdDate?: Date;

@@ -6,12 +6,18 @@ import { useMessageStore } from "./message";
 import tableMgmtService from "@/services/table-mgmt";
 import tableMgmt from "@/services/table-mgmt";
 import { useReceiptStore } from "./receipt";
+import { useMenuQueueStore } from "./menu-queues";
+import menuQueueService from "@/services/menu-queue";
+import type ServeQueues from "@/types/ServeQueues";
 
 export const useTableMgmtStore = defineStore("table-magmt", () => {
   const loadingStore = useLoadingStore();
   const tableMgmts = ref<TableMgmt[]>([]);
+  const tableServe = ref<(TableMgmt & ServeQueues)[]>();
   const messageStore = useMessageStore();
   const receiptStore = useReceiptStore();
+  const menuQueueStore = useMenuQueueStore();
+  const baseUrlPOS = ref("http://localhost:5173/POS-menus?table=");
   const dialog = ref(false);
   const dialogM = ref(false);
 
@@ -36,13 +42,36 @@ export const useTableMgmtStore = defineStore("table-magmt", () => {
       clearTableMgmt();
     }
   });
+  // async function getTableMgmts() {
+  //   loadingStore.isLoading = true;
+  //   try {
+  //     const res = await tableMgmtService.getTableMgmts();
+  //     const countMQServe = await menuQueueService.getMenuQueueCountServe();
+  //     const tableMgmtData: TableMgmt[] = res.data;
+  //     const serveQueuesData: ServeQueues[] = countMQServe.data;
+  //     for (t of tableMgmt) {
+  //       for (s of serveQueuesData) {
+  //         if (t.num === s.tableNumber) {
+  //         }
+  //       }
+  //     }
+  //   } catch (e) {
+  //     console.log(e);
+  //     messageStore.showMessage("ไม่สามารถดึง Table Management ได้");
+  //   }
+  //   getNumReady();
+  //   getNumBusy();
+  //   getNumClean();
+  //   loadingStore.isLoading = false;
+  // }
 
   async function getTableMgmts() {
     loadingStore.isLoading = true;
     try {
       const res = await tableMgmtService.getTableMgmts();
       tableMgmts.value = res.data;
-      console.log(res);
+      tableServe.value = res.data;
+      await menuQueueStore.getQueueCountServ();
     } catch (e) {
       console.log(e);
       messageStore.showMessage("ไม่สามารถดึง Table Management ได้");
@@ -102,6 +131,7 @@ export const useTableMgmtStore = defineStore("table-magmt", () => {
     if (editedTableMgmt.value.status == "ไม่ว่าง") {
       console.log(editedTableMgmt.value);
       editedTableMgmt.value.status = "กำลังจะว่าง";
+      // editedTableMgmt.value.status = "ว่าง";
       await tableMgmtService.updateTableMgmt(id, editedTableMgmt.value);
       receiptStore.cancelTableRec(value);
       await getTableMgmts();
@@ -330,5 +360,7 @@ export const useTableMgmtStore = defineStore("table-magmt", () => {
     getTableAll,
     needStatus,
     statusTable,
+    tableServe,
+    baseUrlPOS,
   };
 });
