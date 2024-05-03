@@ -77,6 +77,7 @@ export const useReceiptStore = defineStore("receipt", () => {
     change: 0,
     status: "รอชำระเงิน",
     payment: "-",
+    discount: 0,
   });
   const dialogD = ref(false);
   async function getReceipts() {
@@ -108,8 +109,8 @@ export const useReceiptStore = defineStore("receipt", () => {
     try {
       const rec = await receiptService.getOneReceipts(id);
       receiptsAt.value = rec.data;
-      console.log(receiptsAt.value?.receiptDetail);
-      console.log(receiptsAt.value);
+      // console.log(receiptsAt.value?.receiptDetail);
+      console.log("receipt at => ", receiptsAt.value);
     } catch (e) {
       console.log(e);
       messageStore.showMessage("ไม่สามารถดึง Receipt item ได้");

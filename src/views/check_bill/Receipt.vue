@@ -21,14 +21,33 @@ const type = ref("");
 const showFocus = ref(false);
 const confPrintDlg = ref();
 // const checkBilled = useReceiptStore().checkBill;
+const change = ref<number>(0);
+const total = ref<number>(0);
+const received = ref<number>(0);
+const discount = ref<number>(0);
+const subtotal = ref<number>(0);
+
+onMounted(async () => {
+  change.value = receiptStore.checkBillItem?.change || 0;
+  total.value = receiptStore.checkBillItem?.total || 0;
+  received.value = receiptStore.checkBillItem?.received || 0;
+  discount.value = receiptStore.checkBillItem?.discount || 0;
+  subtotal.value = receiptStore.checkBillItem?.discount || 0;
+  return (total.value =
+    receiptStore.checkBillItem?.subtotal! -
+    receiptStore.checkBillItem?.discount!);
+});
 
 const billPayT = (type: string) => {
+  total.value =
+    receiptStore.checkBillItem?.subtotal! -
+    receiptStore.checkBillItem?.discount!;
   if (type === "โอน") {
     receiptStore.showPay = !receiptStore.showPay;
     receiptStore.showBillPay = {
       payment: "โอน",
       status: "ชำระเงินแล้ว",
-      received: receiptStore.checkBillItem?.total,
+      received: received.value,
       change: 0,
     };
     return receiptStore.showBillPay;
@@ -39,11 +58,13 @@ const billPayT = (type: string) => {
     receiptStore.showBillPay = {
       payment: "เงินสด",
       status: "ชำระเงินแล้ว",
-      received: 0,
-      change: 0,
+      received: received.value,
+      change: total.value - received.value,
     };
     return receiptStore.showBillPay;
   }
+
+  console.log("showBillPay => ", receiptStore.showBillPay);
 };
 
 const cashPay = (itemRec: Receipt) => {
@@ -218,7 +239,7 @@ const checkReceiptDetail = () => {
                 </v-col>
                 <v-col>
                   <div class="position-absolute" style="right: 20%">
-                    {{ receiptStore.receiptsAt?.subtotal }}
+                    {{ receiptStore.checkBillItem?.subtotal }}
                   </div>
                 </v-col>
               </v-row>
@@ -230,7 +251,7 @@ const checkReceiptDetail = () => {
                 </v-col>
                 <v-col>
                   <div class="position-absolute" style="right: 20%">
-                    {{ receiptStore.receiptsAt?.discount }}
+                    {{ receiptStore.checkBillItem?.discount }}
                   </div>
                 </v-col>
               </v-row>
@@ -248,7 +269,10 @@ const checkReceiptDetail = () => {
                     class="position-absolute font-weight-bold"
                     style="right: 20%"
                   >
-                    {{ receiptStore.receiptsAt?.total }}
+                    {{
+                      receiptStore.checkBillItem?.subtotal! -
+                      receiptStore.checkBillItem?.discount!
+                    }}
                   </div>
                 </v-col>
               </v-row>
@@ -258,17 +282,18 @@ const checkReceiptDetail = () => {
                 </v-col>
                 <v-col v-if="!receiptStore.showText">
                   <div class="position-absolute" style="right: 20%" lg>
-                    {{ receiptStore.showBillPay.received }}
+                    <!-- {{ receiptStore.showBillPay.received }} -->
+                    {{ received }}
                   </div>
                 </v-col>
                 <v-col v-else>
                   <div
                     class="position-absolute"
-                    style="right: 20%; bottom: 36vh"
+                    style="right: 20%; bottom: 32vh"
                   >
                     <v-text-field
                       variant="underlined"
-                      v-model.number="receiptStore.showBillPay.received"
+                      v-model.number="received"
                       style="width: 40px"
                       :autofocus="showFocus"
                       hide-details="auto"
@@ -282,35 +307,39 @@ const checkReceiptDetail = () => {
                 <v-col>
                   <div class="position-absolute" style="left: 11%">Change</div>
                 </v-col>
-                <v-col v-if="receiptStore.showBillPay.received! == 0">
+                <v-col v-if="received === 0">
                   <div class="position-absolute" style="right: 20%">
-                    {{ receiptStore.showBillPay.received! }}
+                    <!-- {{ receiptStore.showBillPay.received! }} -->
+                    {{ received }}
                   </div>
                 </v-col>
                 <v-col
-                  v-else-if="receiptStore.receiptsAt?.total! - receiptStore.showBillPay.received! < 0"
+                  v-else-if="received - receiptStore.checkBillItem?.subtotal! -
+                      receiptStore.checkBillItem?.discount! >= 0"
                 >
                   <div class="position-absolute" style="right: 20%">
                     {{
-                      receiptStore.showBillPay.received! -
-                      receiptStore.receiptsAt?.total!
+                      received! -
+                      (receiptStore.checkBillItem?.subtotal! -
+                        receiptStore.checkBillItem?.discount!)
                     }}
                   </div>
                 </v-col>
                 <v-col
-                  v-else-if="receiptStore.receiptsAt?.total! - receiptStore.showBillPay.received! < receiptStore.receiptsAt?.total! && receiptStore.receiptsAt?.total! - receiptStore.showBillPay.received! >= 1 || receiptStore.showBillPay.received! < 0"
+                  v-else-if="received - receiptStore.checkBillItem?.subtotal! -
+                      receiptStore.checkBillItem?.discount! < 0"
                 >
                   <div class="position-absolute" style="right: 20%">
                     จำนวนเงินไม่พอ
                   </div>
                 </v-col>
                 <v-col v-else>
-                  <div class="position-absolute" style="right: 20%">
+                  <!-- <div class="position-absolute" style="right: 20%">
                     {{
                       receiptStore.receiptsAt?.total! -
                       receiptStore.showBillPay.received!
                     }}
-                  </div>
+                  </div> -->
                 </v-col>
               </v-row>
               <v-row class="ma-4">

@@ -2,14 +2,20 @@
 import { mdiFood, mdiCart, mdiClose } from "@mdi/js";
 import { useSellStore } from "@/stores/sell";
 import { useReceiptStore } from "@/stores/receipt";
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import { ref } from "vue";
 import { useRoute } from "vue-router";
+import router from "@/router";
+import { useLoadingStore } from "@/stores/loading";
+
+const loadingStore = useLoadingStore();
+
 const sellStore = useSellStore();
 const receiptStore = useReceiptStore();
 const route = useRoute();
 const isTableId = ref<number>(-1);
-
+const dataUpdate = ref<boolean>(false);
+// const cartDetail = ref([]);
 const sumTotalPrice = () => {
   let sum = 0;
   sellStore.cartDetail.forEach((element) => {
@@ -24,6 +30,20 @@ const sumCartQty = () => {
   });
   return sum;
 };
+
+const confirmOrder = async (tableId: number) => {
+  loadingStore.isLoading = true;
+  await sellStore.confirm(tableId);
+  dataUpdate.value = true;
+  // location.reload();
+  loadingStore.isLoading = false;
+};
+// watch(
+//   () => sellStore.cartDetail,
+//   (newCartDetail) => {
+//     cartDetail.value = [...newCartDetail];
+//   }
+// );
 
 onMounted(async () => {
   isTableId.value = parseInt(route.query.table as string) || -1;
@@ -64,7 +84,7 @@ onMounted(async () => {
       </v-table>
 
       <v-table style="max-height: 55vh; overflow: auto">
-        <tbody v-if="sellStore.cartDetail.length > 0">
+        <tbody v-if="sellStore.cartDetail.length > 0 || dataUpdate">
           <template v-for="item in sellStore.cartDetail" :key="item.id">
             <tr>
               <td class="text-left" style="width: 25%">{{ item.name }}</td>
@@ -159,7 +179,8 @@ onMounted(async () => {
           class="btnMargin"
           width="200px"
           @click="
-            sellStore.confirm(isTableId);
+            // sellStore.confirm(isTableId);
+            confirmOrder(isTableId);
             receiptStore.getOneReceiptsByUUid(sellStore.getReceiptUuid());
           "
           >ยืนยัน</v-btn

@@ -20,6 +20,7 @@ const varcpStore = useVarCompnStore();
 const tableMgmtStore = useTableMgmtStore();
 const recieptStore = useReceiptStore();
 const confirmDlgs = ref();
+// const receiptStore =
 
 const colorStatus = (colorS: string): string => {
   if (colorS === "ว่าง" || colorS === "กำลังจะว่าง") {
@@ -32,40 +33,53 @@ const colorStatus = (colorS: string): string => {
 };
 
 const checkBill = async (id: number, status: String) => {
+  console.log("=> ", id, status);
   try {
-    const check = recieptStore.getCheckBill(id);
-    console.log("is" + id + "status" + status);
-    console.log(check);
-    if (status === "ไม่ว่าง" && !recieptStore.showBill) {
-      recieptStore.showBill = !recieptStore.showBill;
-      recieptStore.tableCheckBill = id;
-      recieptStore.date = new Date();
-      recieptStore.getDetails();
-      if (recieptStore.showPay) {
-        recieptStore.showPay = !recieptStore.showPay;
-      }
-    } else if (status === "ไม่ว่าง") {
-      recieptStore.tableCheckBill = id;
-      recieptStore.getDetails();
-      recieptStore.date = new Date();
-      if (recieptStore.showPay) {
-        recieptStore.showPay = !recieptStore.showPay;
-      }
-      if (recieptStore.showBillPay.payment == "เงินสด") {
-        recieptStore.showText = !recieptStore.showText;
-      }
-      recieptStore.showBillPay = recieptStore.editedReceipt;
-    } else if (
-      (status === "ว่าง" && recieptStore.showBill) ||
-      (status === "กำลังจะว่าง" && recieptStore.showBill)
-    ) {
-      recieptStore.showBill = !recieptStore.showBill;
-      console.log("ว่าง");
+    if (status === "ว่าง") {
+      return (recieptStore.showBill = false);
     }
+    recieptStore.showBill = true;
+    await recieptStore.getCheckBill(id);
+    console.log("receipt=> ", recieptStore.checkBillItem);
   } catch (e) {
     console.log(e);
   }
 };
+// const checkBill = async (id: number, status: String) => {
+//   try {
+//     const check = recieptStore.getCheckBill(id);
+//     console.log("is" + id + "status" + status);
+//     console.log(check);
+//     if (status === "ไม่ว่าง" && !recieptStore.showBill) {
+//       recieptStore.showBill = !recieptStore.showBill;
+//       recieptStore.tableCheckBill = id;
+//       recieptStore.date = new Date();
+//       recieptStore.getDetails();
+//       if (recieptStore.showPay) {
+//         recieptStore.showPay = !recieptStore.showPay;
+//       }
+//     } else if (status === "ไม่ว่าง") {
+//       recieptStore.tableCheckBill = id;
+//       recieptStore.getDetails();
+//       recieptStore.date = new Date();
+//       if (recieptStore.showPay) {
+//         recieptStore.showPay = !recieptStore.showPay;
+//       }
+//       if (recieptStore.showBillPay.payment == "เงินสด") {
+//         recieptStore.showText = !recieptStore.showText;
+//       }
+//       recieptStore.showBillPay = recieptStore.editedReceipt;
+//     } else if (
+//       (status === "ว่าง" && recieptStore.showBill) ||
+//       (status === "กำลังจะว่าง" && recieptStore.showBill)
+//     ) {
+//       recieptStore.showBill = !recieptStore.showBill;
+//       console.log("ว่าง");
+//     }
+//   } catch (e) {
+//     console.log(e);
+//   }
+// };
 
 onMounted(async () => {
   await tableMgmtStore.getTableMgmts();

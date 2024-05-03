@@ -5,14 +5,11 @@ import { useMenuQueueStore } from "@/stores/menu-queues";
 import { onMounted } from "vue";
 import { useReceiptStore } from "@/stores/receipt";
 import BillDetail from "./BillDetail.vue";
-import { ref } from "vue";
-import { useRoute } from "vue-router";
-const route = useRoute();
 const sellStore = useSellStore();
 const receiptStore = useReceiptStore();
 
 const menuQueueStore = useMenuQueueStore();
-const isTableId = ref<number>(-1);
+
 const checkReceiptDetail = () => {
   if (receiptStore.receiptsAt?.receiptDetail! != undefined) {
     if (receiptStore.receiptsAt?.receiptDetail?.length! > 0) {
@@ -23,10 +20,8 @@ const checkReceiptDetail = () => {
 };
 
 onMounted(async () => {
-  isTableId.value = parseInt(route.query.table as string) || -1;
   await menuQueueStore.getMenuQueues();
-  await sellStore.checkReceiptInTable(isTableId.value);
-  // await receiptStore.getOneReceiptsByUUid(sellStore.getReceiptUuid());
+  await receiptStore.getOneReceiptsByUUid(sellStore.getReceiptUuid());
 });
 </script>
 
@@ -64,18 +59,9 @@ onMounted(async () => {
 
       <v-table style="max-height: 70vh; overflow-y: auto">
         <tbody>
-          <!-- <template v-if="checkReceiptDetail()">
+          <template v-if="checkReceiptDetail()">
             <template v-for="item in menuQueueStore.menuQueues" :key="item.id">
               <tr v-if="item.receipt?.id == receiptStore.receiptsAt!.id">
-                <td style="width: 33%">{{ item.name }}</td>
-                <td style="width: 33%">{{ item.status }}</td>
-                <td style="width: 33%">{{ item.note }}</td>
-              </tr>
-            </template>
-          </template> -->
-          <template v-if="sellStore.orderOnTable.length > 0">
-            <template v-for="item in sellStore.orderOnTable" :key="item.id">
-              <tr>
                 <td style="width: 33%">{{ item.name }}</td>
                 <td style="width: 33%">{{ item.status }}</td>
                 <td style="width: 33%">{{ item.note }}</td>

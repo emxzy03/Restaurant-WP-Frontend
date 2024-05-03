@@ -21,6 +21,7 @@ export const useSellStore = defineStore("sell", () => {
   const textSearch = ref("");
   const dialog = ref(false);
   const billDialog = ref(false);
+  const orderOnTable = ref<MenuQueue[]>([]);
   // const isTableId =
   const menuDetail = ref<
     Menu & { quantity?: number; total?: number; note?: string }
@@ -106,34 +107,94 @@ export const useSellStore = defineStore("sell", () => {
 
   const clear = () => {
     cartDetail.value = [];
+    console.log("cartDetail => ", cartDetail.value);
   };
-
   const confirm = async (tableId: number) => {
     try {
-      //Get Table
-      const table = await tableMgmt.getOneTableMgmt(tableId);
-
-      //POST receipt
-      const updateReceipt = ref<Receipt>({
-        receiptDetail: [],
-        table: table.data,
-      });
-      cartDetail.value.forEach((element) => {
-        updateReceipt.value.receiptDetail!.push({
-          menuId: element.menuId!,
-          quantity: element.quantity!,
+      const orderOn = await checkReceiptInTable(tableId);
+      const updateReceipt = ref<Receipt>({ receiptDetail: [] });
+      const receipted = ref<Receipt>();
+      if (orderOn) {
+        //if found receipt on table
+        // PATCH
+        const receiptOntable = await receiptService.getOneReceiptsByTableId(
+          tableId
+        );
+        receipted.value = receiptOntable.data;
+        updateReceipt.value.table = receiptOntable.data.table;
+        cartDetail.value.forEach((element) => {
+          updateReceipt.value!.receiptDetail!.push({
+            menuId: element.menuId!,
+            quantity: element.quantity!,
+          });
         });
+        //insert receipt detail to receipt on table
+        const receiptNew = await receiptService.updateReceiptDetail(
+          receiptOntable.data.id,
+          updateReceipt.value
+        );
+        receipted.value = receiptNew.data;
+      } else {
+        //if not found receipt on table
+        //Get Table
+        const table = await tableMgmt.getOneTableMgmt(tableId);
+        //POST receipt
+        updateReceipt.value.table = table.data;
+        cartDetail.value.forEach((element) => {
+          updateReceipt.value.receiptDetail!.push({
+            menuId: element.menuId!,
+            quantity: element.quantity!,
+          });
+        });
+        // console.log("receipt data for POST => ", updateReceipt);
+        const receiptNew = await receiptService.saveReceipts(
+          updateReceipt.value
+        );
+        // console.log("receipt after POST => ", updateReceipt);
+        receipted.value = receiptNew.data;
+      }
+
+      // console.log("receipt befor save =>", receipted);
+      //POST menu_queue
+      const listMenuQueue: MenuQueue[] = [];
+      cartDetail.value.forEach((element) => {
+        const menuQueue: MenuQueue = {
+          name: element.name!,
+          note: element.note!,
+          status: "รอทำ",
+          menuId: element.menuId,
+          quantity: element.quantity,
+          receipt: receipted.value,
+          receiptId: receipted.value?.id,
+        };
+        listMenuQueue.push(menuQueue);
       });
-      // console.log("receipt data for POST => ", updateReceipt);
-      await receiptService.saveReceipts(updateReceipt.value);
+      listMenuQueue.forEach(async (element) => {
+        await menuqueueService.saveMenuQueue(element);
+        // console.log("menuQueue for save => ", element);
+      });
     } catch (e) {
       console.log(e);
       messageStore.showMessage("ไม่สามารถสั่งอาหารได้");
     }
 
-    await receiptStore.getOneReceiptsByUUid(getReceiptUuid());
+    // await receiptStore.getOneReceiptsByUUid(getReceiptUuid());
     checkReceiptDetail();
     clear();
+  };
+  const checkReceiptInTable = async (tableId: number) => {
+    orderOnTable.value = [];
+    try {
+      const receipt = await tableMgmt.getReceiptOnTable(tableId);
+      if (receipt.data.length === 0 || receipt === null || !receipt) {
+        return false;
+      }
+      orderOnTable.value = receipt.data;
+    } catch (e) {
+      console.log(e);
+      messageStore.showMessage("ไม่พบอาหารในโต๊ะ");
+    }
+    return true;
   };
 
   // const confirm = async () => {
@@ -211,5 +272,7 @@ export const useSellStore = defineStore("sell", () => {
     cancelAll,
     checkReceiptDetail,
     colorStatus,
+    checkReceiptInTable,
+    orderOnTable,
   };
 });

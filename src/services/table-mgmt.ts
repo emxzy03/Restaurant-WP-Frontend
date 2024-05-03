@@ -8,6 +8,10 @@ function getOneTableMgmt(id: number) {
   return http.get(`/tables/${id}`);
 }
 
+function getReceiptOnTable(id: number) {
+  return http.get(`/tables/receipt-on/${id}`);
+}
+
 function saveTableMgmt(tablemgmt: TableMgmt) {
   return http.post("/tables", tablemgmt);
 }
@@ -26,4 +30,5 @@ export default {
   updateTableMgmt,
   deleteTableMgmt,
   getOneTableMgmt,
+  getReceiptOnTable,
 };

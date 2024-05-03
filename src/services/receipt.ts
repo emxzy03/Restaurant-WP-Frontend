@@ -29,10 +29,13 @@ function saveReceipts(receipt: Receipt) {
     // }
   );
 }
+function updateReceiptDetail(id: number, updateReceipt: Receipt) {
+  return http.patch(`/receipts/receipt-detail/${id}`, updateReceipt);
+}
 
 function updateReceipts(id: number, updateReceipt: Receipt) {
   updateReceipt.empid = updateReceipt.employee?.id!;
-  updateReceipt.tableid = updateReceipt.table?.id;
+  updateReceipt.tableId = updateReceipt.table?.id;
   return http.patch(`/receipts/${id}`, updateReceipt);
 }
 
@@ -51,4 +54,5 @@ export default {
   getOneReceiptsByUuid,
   deleteReceiptItems,
   getOneReceiptsByTableId,
+  updateReceiptDetail,
 };
