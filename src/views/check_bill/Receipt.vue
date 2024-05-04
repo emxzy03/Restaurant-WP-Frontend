@@ -28,26 +28,20 @@ const discount = ref<number>(0);
 const subtotal = ref<number>(0);
 
 onMounted(async () => {
-  change.value = receiptStore.checkBillItem?.change || 0;
-  total.value = receiptStore.checkBillItem?.total || 0;
   received.value = receiptStore.checkBillItem?.received || 0;
   discount.value = receiptStore.checkBillItem?.discount || 0;
-  subtotal.value = receiptStore.checkBillItem?.discount || 0;
   return (total.value =
     receiptStore.checkBillItem?.subtotal! -
     receiptStore.checkBillItem?.discount!);
 });
 
 const billPayT = (type: string) => {
-  total.value =
-    receiptStore.checkBillItem?.subtotal! -
-    receiptStore.checkBillItem?.discount!;
   if (type === "โอน") {
     receiptStore.showPay = !receiptStore.showPay;
     receiptStore.showBillPay = {
       payment: "โอน",
       status: "ชำระเงินแล้ว",
-      received: received.value,
+      received: 0,
       change: 0,
     };
     return receiptStore.showBillPay;
@@ -58,45 +52,59 @@ const billPayT = (type: string) => {
     receiptStore.showBillPay = {
       payment: "เงินสด",
       status: "ชำระเงินแล้ว",
-      received: received.value,
-      change: total.value - received.value,
+      received: 0,
+      change: 0,
     };
+    console.log("showBillPay type เงินสด => ", receiptStore.showBillPay);
     return receiptStore.showBillPay;
   }
-
-  console.log("showBillPay => ", receiptStore.showBillPay);
 };
 
-const cashPay = (itemRec: Receipt) => {
-  if (itemRec.payment === "เงินสด") {
-    receiptStore.showBillPay = {
-      payment: "เงินสด",
-      status: "ชำระเงินแล้ว",
-      received: receiptStore.showBillPay.received!,
-      change:
-        receiptStore.showBillPay.received! - receiptStore.checkBillItem?.total!,
-    };
-  }
-  return receiptStore.showBillPay;
-};
+// const cashPay = (itemRec: Receipt) => {
+//   if (itemRec.payment === "เงินสด") {
+//     receiptStore.showBillPay = {
+//       payment: "เงินสด",
+//       status: "ชำระเงินแล้ว",
+//       received: receiptStore.showBillPay.received!,
+//       change:
+//         receiptStore.showBillPay.received! - receiptStore.checkBillItem?.total!,
+//     };
+//   }
+//   return receiptStore.showBillPay;
+// };
 
-const printBill = async (tableId: number, recId: number, itemRec: Receipt) => {
-  receiptStore.showBill = !receiptStore.showBill;
-  receiptStore.showPay = !receiptStore.showPay;
-  cashPay(itemRec);
-  // console.log(receiptStore.showBillPay);
-  try {
-    await tableMgmtStore.statusTable(tableId);
-    await receiptStore.updateBill(recId, receiptStore.showBillPay);
-    receiptStore.showBillPay = receiptStore.editedReceipt;
-  } catch (e) {
-    /* empty */
-  }
+// const printBill = async (tableId: number, recId: number, itemRec: Receipt) => {
+//   receiptStore.showBill = !receiptStore.showBill;
+//   receiptStore.showPay = !receiptStore.showPay;
+//   cashPay(itemRec);
+//   // console.log(receiptStore.showBillPay);
+//   try {
+//     await tableMgmtStore.statusTable(tableId);
+//     await receiptStore.updateBill(recId, receiptStore.showBillPay);
+//     receiptStore.showBillPay = receiptStore.editedReceipt;
+//   } catch (e) {
+//     /* empty */
+//   }
+// };
+
+const calculateBill = (rec: Receipt) => {
+  rec.total =
+    receiptStore.checkBillItem?.subtotal! -
+    receiptStore.checkBillItem?.discount!;
+  rec.received = received.value;
+  rec.change = rec.total - received.value;
+  if (rec.change < 0) rec.change = 0;
+  return rec;
 };
 
 const openD = async (tableId: number, recId: number, itemRec: Receipt) => {
+  const item = calculateBill(itemRec);
+  //Reset value
+  received.value = 0;
   try {
-    await confPrintDlg.value.openDialog(tableId, recId, itemRec);
+    console.log("front item => ", item);
+
+    await confPrintDlg.value.openDialog(tableId, recId, item);
     // await tableMgmtStore.getTableMgmts();
   } catch (e) {
     /* empty */
@@ -401,20 +409,13 @@ const checkReceiptDetail = () => {
                     @click="
                       openD(
                         receiptStore.tableCheckBill,
-                        receiptStore.receiptsAt?.id!,
+                        receiptStore.checkBillItem?.id!,
                         receiptStore.showBillPay
                       )
                     "
                   >
                     พิมพ์ใบเสร็จ
                   </v-btn>
-                  <!-- @click="
-                                  printBill(
-                                    receiptStore.tableCheckBill,
-                                    receiptStore.receiptsAt?.id!,
-                                    receiptStore.showBillPay
-                                  )
-                                " -->
                 </v-col>
               </v-row>
             </form>

@@ -9,6 +9,8 @@ import type TableMgmt from "@/types/TableManagement";
 import type ReceiptDetail from "@/types/ReceiptDetail";
 import employeeService from "@/services/employee";
 import { useLoginStore } from "./login";
+import tableMgmtService from "@/services/table-mgmt";
+import { useTableMgmtStore } from "./table-mgmt";
 
 export const useReceiptStore = defineStore("receipt", () => {
   const loadingStore = useLoadingStore();
@@ -30,6 +32,7 @@ export const useReceiptStore = defineStore("receipt", () => {
   const baseUrlPOS = ref("http://localhost:5173/receipt/");
   const urlSellView = ref("");
   const checkBillItem = ref<Receipt>();
+  const tableMgmtStore = useTableMgmtStore();
 
   async function getCheckBill(id: number) {
     const bill = await receiptService.getOneReceiptsByTableId(id);
@@ -62,11 +65,8 @@ export const useReceiptStore = defineStore("receipt", () => {
   });
   const createR = ref(true);
   const editedReceiptCreate = ref<ReceiptCreate>({
-    // subtotal: 0,
     discount: 1,
-    // total: 0,
     received: 1,
-    // change: 0,
     status: "รอชำระเงิน",
     payment: "-",
     tableid: 0,
@@ -303,33 +303,63 @@ export const useReceiptStore = defineStore("receipt", () => {
   }
 
   async function updateBill(rec: number, itemRec: Receipt) {
+    loadingStore.isLoading = true;
     try {
-      const resM = await receiptService.getOneReceipts(rec!);
-
-      const resBill = resM.data;
-
-      const resE = await employeeService.getOneEmployee(
-        parseInt(loginStore.userIdNow)
+      //PATCH Bill
+      const resBill = await receiptService.getOneReceipts(rec!);
+      const updateTable: TableMgmt = resBill.data.table;
+      const userId = localStorage.getItem("userIDNow");
+      const empId = await employeeService.getOneEmployee(
+        userId ? parseInt(userId) : 0
       );
-      const empDo = resE.data;
+      resBill.data.payment = itemRec.payment || "-";
+      resBill.data.discount = itemRec.discount || 0;
+      resBill.data.received = itemRec.received || 0;
+      resBill.data.total = itemRec.total;
+      resBill.data.change = itemRec.change ? itemRec.change >= 0 : 0;
+      resBill.data.status = "เสร็จสิ้น";
+      resBill.data.empid = empId.data.id;
 
-      if (resBill.status === "รอชำระเงิน") {
-        resBill.received = itemRec.received;
-        resBill.change = itemRec.change;
-        resBill.status = itemRec.status;
-        resBill.payment = itemRec.payment;
-        resBill.receiptDetail = undefined;
-        resBill.employee = empDo;
-
-        await receiptService.updateReceipts(resBill.id, resBill);
-      } else {
-        messageStore.showMessage("ไม่สามารถบันทึก Bill ได้");
-      }
+      await receiptService.updateReceipts(resBill.data.id, resBill.data);
+      // Update status table
+      updateTable.status = "กำลังจะว่าง";
+      await tableMgmtService.updateTableMgmt(updateTable.id!, updateTable);
     } catch (e) {
       console.log(e);
       messageStore.showMessage("ไม่สามารถบันทึก Bill ได้");
     }
+    await tableMgmtStore.getTableMgmts();
+    loadingStore.isLoading = false;
   }
+
+  // async function updateBill(rec: number, itemRec: Receipt) {
+  //   try {
+  //     const resM = await receiptService.getOneReceipts(rec!);
+
+  //     const resBill = resM.data;
+
+  //     const resE = await employeeService.getOneEmployee(
+  //       parseInt(loginStore.userIdNow)
+  //     );
+  //     const empDo = resE.data;
+
+  //     if (resBill.status === "รอชำระเงิน") {
+  //       resBill.received = itemRec.received;
+  //       resBill.change = itemRec.change;
+  //       resBill.status = itemRec.status;
+  //       resBill.payment = itemRec.payment;
+  //       resBill.receiptDetail = undefined;
+  //       resBill.employee = empDo;
+
+  //       await receiptService.updateReceipts(resBill.id, resBill);
+  //     } else {
+  //       messageStore.showMessage("ไม่สามารถบันทึก Bill ได้");
+  //     }
+  //   } catch (e) {
+  //     console.log(e);
+  //     messageStore.showMessage("ไม่สามารถบันทึก Bill ได้");
+  //   }
+  // }
   async function getReceiptItems(id: number) {
     loadingStore.isLoading = true;
     try {

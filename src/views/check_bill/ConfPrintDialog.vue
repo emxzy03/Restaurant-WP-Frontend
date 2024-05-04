@@ -30,32 +30,49 @@ const openDialog = (tableId: number, recId: number, itemRec: Receipt) => {
 defineExpose({ openDialog });
 
 const printBill = async () => {
+  receiptStore.dialogP = false;
   receiptStore.showBill = !receiptStore.showBill;
   receiptStore.showPay = !receiptStore.showPay;
-  cashPay(itemR.value);
+  // cashPay(itemR.value);
   // console.log(receiptStore.showBillPay);
   try {
-    await tableMgmtStore.statusTable(tabId.value);
+    // await tableMgmtStore.statusTable(tabId.value);
     await receiptStore.updateBill(rcId.value, receiptStore.showBillPay);
     receiptStore.showBillPay = receiptStore.editedReceipt;
   } catch (e) {
     /* empty */
   }
-  receiptStore.dialogP = false;
+  reset();
+  receiptStore.showPay = false;
 };
 
-const cashPay = (itemRec: Receipt) => {
-  if (itemRec.payment === "เงินสด") {
-    receiptStore.showBillPay = {
-      payment: "เงินสด",
-      status: "ชำระเงินแล้ว",
-      received: receiptStore.showBillPay.received!,
-      change:
-        receiptStore.showBillPay.received! - receiptStore.receiptsAt?.total!,
-    };
-  }
-  return receiptStore.showBillPay;
-};
+// const printBill = async () => {
+//   receiptStore.showBill = !receiptStore.showBill;
+//   receiptStore.showPay = !receiptStore.showPay;
+//   cashPay(itemR.value);
+//   // console.log(receiptStore.showBillPay);
+//   try {
+//     await tableMgmtStore.statusTable(tabId.value);
+//     await receiptStore.updateBill(rcId.value, receiptStore.showBillPay);
+//     receiptStore.showBillPay = receiptStore.editedReceipt;
+//   } catch (e) {
+//     /* empty */
+//   }
+//   receiptStore.dialogP = false;
+// };
+
+// const cashPay = (itemRec: Receipt) => {
+//   if (itemRec.payment === "เงินสด") {
+//     receiptStore.showBillPay = {
+//       payment: "เงินสด",
+//       status: "ชำระเงินแล้ว",
+//       received: receiptStore.showBillPay.received!,
+//       change:
+//         receiptStore.showBillPay.received! - receiptStore.receiptsAt?.total!,
+//     };
+//   }
+//   return receiptStore.showBillPay;
+// };
 
 const reset = () => {
   receiptStore.showBillPay = {

@@ -33,7 +33,7 @@ const colorStatus = (colorS: string): string => {
 };
 
 const checkBill = async (id: number, status: String) => {
-  console.log("=> ", id, status);
+  // console.log("=> ", id, status);
   try {
     if (status === "ว่าง") {
       return (recieptStore.showBill = false);
